@@ -1,2 +1,2 @@
 # ws-watcher
-A PoC application that detects unauthorized external access to select memory regions.
+This application protects its heap-allocated memory from being accessed externally while also accessing it internally. The working set watcher introcuses a custom smart pointer, `ws::paged_ptr`, which pages the memory associated with the pointer out of the working set. The watcher then launches a seperate thread that queries the working set and catches any page faults that occur. If a page fault was caused externally, information about the handle used is logged.
