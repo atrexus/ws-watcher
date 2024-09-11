@@ -4,8 +4,6 @@ int main( )
 {
     try
     {
-        const auto& watcher = ws::watcher::get( );
-
         const auto& ptr = ws::make_paged< std::uint8_t >( 10 );
 
         std::getchar( );
@@ -20,8 +18,6 @@ int main( )
         }
 
         std::getchar( );
-
-        watcher->stop( );
     }
     catch ( const std::exception& e )
     {

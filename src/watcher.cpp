@@ -56,13 +56,23 @@ namespace ws
         return path;
     }
 
-    std::unique_ptr< watcher > watcher::instance = nullptr;
+    std::unique_ptr< watcher > watcher::instance = std::unique_ptr< watcher >( new watcher{ GetCurrentProcess( ) } );
+    std::unique_ptr< std::jthread > watcher::thread =
+        std::unique_ptr< std::jthread >( new std::jthread( std::bind_front( &watcher::watch, instance.get( ) ) ) );
 
     watcher::watcher( HANDLE handle ) : handle( handle )
     {
         // Initialize the process for working set monitoring.
         if ( !InitializeProcessForWsWatch( handle ) )
             throw std::runtime_error( std::format( "Failed to initialize process for working set watch: {0}", GetLastError( ) ) );
+    }
+
+    void watcher::deleter::operator( )( watcher* ptr )
+    {
+        ptr->stop( );
+
+        if ( ptr != nullptr )
+            delete ptr;
     }
 
     void watcher::watch( std::stop_token token ) const
@@ -136,7 +146,7 @@ namespace ws
             }
 
             // Wait a bit until we try again
-            std::this_thread::sleep_for( 1s );
+            std::this_thread::sleep_for( 1ms );
         }
     }
 
@@ -149,14 +159,6 @@ namespace ws
 
     std::unique_ptr< watcher >& watcher::get( )
     {
-        if ( instance == nullptr )
-        {
-            instance = std::unique_ptr< watcher >( new watcher{ GetCurrentProcess( ) } );
-
-            instance->thread.reset( new std::jthread( std::bind_front( &watcher::watch, instance.get( ) ) ) );
-            instance->thread->detach( );
-        }
-
         return instance;
     }
 

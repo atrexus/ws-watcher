@@ -18,9 +18,9 @@ namespace ws
     class watcher final
     {
         static std::unique_ptr< watcher > instance;
+        static std::unique_ptr< std::jthread > thread;
 
         HANDLE handle;
-        std::unique_ptr< std::jthread > thread;
         std::vector< std::uintptr_t > watch_list;
 
         /// <summary>
@@ -40,6 +40,17 @@ namespace ws
         /// Gets the global instance of the working set watcher.
         /// </summary>
         static std::unique_ptr< watcher >& get( );
+
+        /// <summary>
+        /// The deleter struct that is used to delete the watcher instance.
+        /// </summary>
+        struct deleter
+        {
+            /// <summary>
+            /// Deletes the watcher instance.
+            /// </summary>
+            void operator( )( watcher* ptr );
+        };
 
         /// <summary>
         /// Adds a virtual address to the working set watch list.
@@ -68,8 +79,6 @@ namespace ws
             // We initially unlock the memory so that the page is not in the working set.
             if ( instance )
                 VirtualUnlock( reinterpret_cast< LPVOID >( instance ), sizeof( T ) );
-
-            //std::this_thread::sleep_for( std::chrono::seconds( 1 ) );
 
             // Add the instance to the watch list.
             watcher::get( )->add( reinterpret_cast< std::uintptr_t >( instance ) );
