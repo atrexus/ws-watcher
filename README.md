@@ -17,3 +17,7 @@ if ( const auto& data = paged.lock( ) )
     ptr[ 1 ] = 0xFF;
 }
 ```
+
+The video below demonstrates what happens if an external process attempts to read from a buffer protected by the `ws::paged_ptr` class. 
+
+https://github.com/user-attachments/assets/e84d6526-4c43-42de-84d7-035e6690b041
